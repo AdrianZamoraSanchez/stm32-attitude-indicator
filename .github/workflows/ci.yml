@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  firmware:
+    name: Firmware (arm-none-eabi)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARM toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
+
+      - name: Configure
+        run: >
+          cmake -S firmware -B build/firmware
+          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/firmware/toolchain/arm-none-eabi.cmake
+          -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build/firmware
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: attitude_indicator
+          path: |
+            build/firmware/app/attitude_indicator.elf
+            build/firmware/app/attitude_indicator.bin
+
+  unit-tests:
+    name: Unit tests (host)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S tests -B build/tests
+
+      - name: Build
+        run: cmake --build build/tests
+
+      - name: Run
+        run: ctest --test-dir build/tests --output-on-failure
