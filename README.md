@@ -46,8 +46,6 @@ This repository contains only the parts behind the attitude indicator demo: the 
 
 The I2C pull-ups are the ones fitted on the sensor and display modules.
 
-![Wiring](docs/wiring.jpg)
-
 ## Architecture
 
 ```mermaid
